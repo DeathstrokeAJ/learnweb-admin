@@ -77,7 +77,23 @@ export function useAuthProvider(): AuthContextValue {
 
 export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext)
+  
   if (!context) {
+    // During static generation (prerendering), context might be null if 
+    // the provider isn't initialized yet in the static analysis tree.
+    // We return a safe dummy object if we're not in the browser.
+    if (typeof window === "undefined") {
+      return {
+        user: null,
+        isLoading: true,
+        error: null,
+        login: async () => {},
+        register: async () => {},
+        logout: async () => {},
+        mutate: () => {},
+        hasRole: () => false,
+      }
+    }
     throw new Error("useAuth must be used within an AuthProvider")
   }
   return context
